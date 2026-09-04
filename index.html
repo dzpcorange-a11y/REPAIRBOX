@@ -3067,60 +3067,60 @@ window.rbDirectReturn = function(btn){
 /* RepairBox V24.60 External PWA bridge.
    The static PWA keeps the existing google.script.run call sites unchanged.
    It talks to a tiny Apps Script iframe bridge when online. */
+<script>
+/* RepairBox V24.60 Direct Fetch Bridge */
 (function () {
   if (window.google && google.script && google.script.run) return;
 
-  var BRIDGE_URL = (window.REPAIRBOX_BRIDGE_URL || 'https://script.google.com/macros/s/AKfycbxV52E5NcjDPTAv8d_z76gkSAbyULgPxgcWgOjpbYYPFNW1u1WYsYBheuzue0OEmj5L/exec?bridge=1');
-  var frame, ready = false, seq = 0, pending = {}, waitQueue = [];
+  var BRIDGE_URL = window.REPAIRBOX_BRIDGE_URL || 'https://script.google.com/macros/s/AKfycbxV52E5NcjDPTAv8d_z76gkSAbyULgPxgcWgOjpbYYPFNw1u1WYsYBheuzue0Emj5L/exec';
 
-  function ensureFrame() {
-    if (frame) return;
-    frame = document.createElement('iframe');
-    frame.id = 'repairboxBridgeFrame';
-    frame.src = BRIDGE_URL;
-    frame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;left:-10px;bottom:-10px;';
-    document.documentElement.appendChild(frame);
-  }
-  function call(method, args, success, failure, userObject) {
-    ensureFrame();
-    var id = 'rb_' + Date.now() + '_' + (++seq) + '_' + Math.random().toString(36).slice(2);
-    pending[id] = {success:success, failure:failure, userObject:userObject};
-    var msg={type:'REPAIRBOX_RPC', id:id, method:method, args:args || []};
-    try {
-      if (ready) frame.contentWindow.postMessage(msg, '*'); else waitQueue.push(msg);
-    } catch (e) {
-      var p=pending[id]; delete pending[id]; if(p&&p.failure)p.failure(e,p.userObject);
-    }
-  }
-  window.addEventListener('message', function (ev) {
-    var d=ev.data||{};
-    if (d.type==='REPAIRBOX_BRIDGE_READY') { ready=true; while(waitQueue.length){ try { var q=waitQueue.shift(); frame.contentWindow.postMessage(q, '*'); } catch(e){} } return; }
-    if (d.type!=='REPAIRBOX_RPC_RESULT' || !pending[d.id]) return;
-    var p=pending[d.id]; delete pending[d.id];
-    if (d.ok) { if(p.success)p.success(d.result,p.userObject); }
-    else { if(p.failure)p.failure(d.error,p.userObject); }
-  });
-
-  function runner(success, failure, userObject) {
-    var api = {
-      withSuccessHandler:function(fn){return runner(fn,failure,userObject);},
-      withFailureHandler:function(fn){return runner(success,fn,userObject);},
-      withUserObject:function(obj){return runner(success,failure,obj);}
-    };
-    return new Proxy(api,{get:function(target,prop){
-      if(prop in target) return target[prop];
-      if(typeof prop!=='string') return undefined;
-      return function(){
-        var args=Array.prototype.slice.call(arguments);
-        call(prop,args,success,failure,userObject);
-        return api;
-      };
-    }});
-  }
   window.google = window.google || {};
-  google.script = google.script || {};
-  google.script.run = runner(null,null,null);
-  ensureFrame();
+  window.google.script = window.google.script || {};
+
+  function Runner(successHandler, failureHandler) {
+    this._success = successHandler || null;
+    this._failure = failureHandler || null;
+  }
+
+  Runner.prototype.withSuccessHandler = function (fn) {
+    return new Runner(fn, this._failure);
+  };
+
+  Runner.prototype.withFailureHandler = function (fn) {
+    return new Runner(this._success, fn);
+  };
+
+  // معالجة استدعاء أي دالة ديناميكياً
+  window.google.script.run = new Proxy(new Runner(), {
+    get: function (target, prop) {
+      if (prop in target) return target[prop];
+
+      return function () {
+        var args = Array.prototype.slice.call(arguments);
+        var success = target._success;
+        var failure = target._failure;
+
+        fetch(BRIDGE_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: prop, args: args })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.status === 'success' || data.success) {
+            if (success) success(data.result !== undefined ? data.result : data);
+          } else {
+            if (failure) failure(data.error || 'Execution failed');
+          }
+        })
+        .catch(function (err) {
+          console.error('Bridge Error:', err);
+          if (failure) failure(err);
+        });
+      };
+    }
+  });
 })();
 </script>
 <script>
