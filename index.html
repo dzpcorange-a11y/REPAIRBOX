@@ -2180,12 +2180,23 @@ window.rbDirectReturn = function(btn){
       <button data-v18-role="ADMIN,STORE" onclick="openNewModal()"><span class="v18-icon">➕</span>إضافة جهاز جديد</button>
       <button data-v18-role="ADMIN,STORE" onclick="openQuickSearchModal()"><span class="v18-icon">⌕</span>البحث السريع</button>
       <button data-v18-role="ADMIN" onclick="openAllActiveDevicesModal()"><span class="v18-icon">📱</span>الأجهزة النشطة</button>
+      <button data-v18-role="ADMIN" type="button" onclick="openAdminPriceEditModal()"><span class="v18-icon">✏️</span>تعديل أسعار الأجهزة</button>
       <button type="button" data-v18-role="STORE,ADMIN" id="sidebarRetourBtn" onclick="openRetourModal()"><span class="v18-icon">↩️</span>إرجاع جهاز للورشة</button>
+    </nav>
+
+    <div class="v18-section-title" data-v18-role="ADMIN,STORE">الطباعة والتقارير</div>
+    <nav class="v18-nav" data-v18-role="ADMIN,STORE">
+      <button type="button" data-v18-role="ADMIN,STORE" id="sidebarPrintCenterBtn" onclick="openPrintCenterModal()"><span class="v18-icon">🖨️</span>مركز الطباعة والتقارير</button>
+      <button type="button" data-v18-role="STORE,ADMIN" onclick="openDailyDeliveredStoreModal()"><span class="v18-icon">📦</span>الأجهزة المسلمة اليوم</button>
     </nav>
 
     <div class="v18-section-title" data-v18-role="ADMIN">الإحصائيات</div>
     <nav class="v18-nav" data-v18-role="ADMIN">
       <button data-v18-role="ADMIN" onclick="openWorkshopStatisticsModal()"><span class="v18-icon">📊</span>إحصائيات الورشة</button>
+    </nav>
+    <div class="v18-section-title" data-v18-role="ADMIN,STORE">المخزون وقطع الغيار</div>
+    <nav class="v18-nav" data-v18-role="ADMIN,STORE">
+      <button type="button" data-v18-role="ADMIN,STORE" onclick="openInventoryModal()"><span class="v18-icon">📦</span>المخزون وقطع الغيار <span class="v18-badge" id="v18InventoryLowBadge">0</span></button>
     </nav>
 
     <div class="v18-section-title" data-v18-role="TECH,STORE,ADMIN">التواصل والطلبات</div>
@@ -2281,7 +2292,8 @@ window.rbDirectReturn = function(btn){
 </div>
 
   <header>
-    <h1>REPAIR BOX V24.60</h1>
+    <h1>REPAIR BOX V24.71</h1>
+    <button id="rbPrintCenterBtn" class="btn-sm btn-success" data-v18-role="ADMIN,STORE" onclick="openPrintCenterModal()" style="display:none;margin-inline:8px;white-space:nowrap;">🖨️ الطباعة والتقارير</button>
     <div class="v18-global-search" data-v18-role="ADMIN,STORE" onclick="openQuickSearchModal()" title="فتح البحث السريع">
       <span class="v18-global-search-icon">⌕</span>
       <span class="v18-global-search-text">بحث شامل عن وصل، هاتف، زبون، جهاز أو فني...</span>
@@ -2430,6 +2442,7 @@ window.rbDirectReturn = function(btn){
           </div>
           <div class="admin-actions" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
   <button class="btn-sm btn-success" onclick="openAddNewWorkerModal()">👤 إضافة عامل</button>
+  <button class="btn-sm btn-info" onclick="openAdminPriceEditModal()">✏️ تعديل سعر جهاز</button>
   <button class="btn-sm btn-warning" onclick="openDailyFinancialModal()">📊 تقرير اليوم</button>
   <button class="btn-sm btn-warning" style="background:#7C3AED !important; position:relative;" onclick="openConnectedUsersModal()">🌐 المتصلون والسجل <span id="connectionBadge" class="connection-badge hidden">0</span></button>
 </div>
@@ -2467,7 +2480,7 @@ window.rbDirectReturn = function(btn){
             <table class="tech-pay-table admin-tech-table">
               <thead>
                 <tr>
-                  <th>الفني</th><th>المستحق</th><th>المسدد</th><th>المتبقي</th><th>الإجراءات</th>
+                  <th>الفني</th><th>المتبقي</th><th>الإجراءات</th>
                 </tr>
               </thead>
               <tbody id="adminTechsTableBody"></tbody>
@@ -2478,6 +2491,31 @@ window.rbDirectReturn = function(btn){
       </div>
     </div>
 
+  </div>
+
+
+
+<style id="rb-print-center-visibility-fix">
+  #sidebarPrintCenterBtn{font-weight:900!important;}
+  #sidebarPrintCenterBtn .v18-icon{font-size:1.1rem;}
+</style>
+  <!-- V24.70: PRINT CENTER -->
+  <div class="modal-overlay" id="printCenterModal">
+    <div class="modal-card" style="max-width:850px;max-height:90vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #E2E8F0;padding-bottom:10px;margin-bottom:14px;">
+        <div><h3 style="margin:0;">🖨️ مركز الطباعة والتقارير</h3><small style="color:#64748B;">اختر ما تريد طباعته ثم اضغط معاينة وطباعة.</small></div>
+        <button class="icon-close-btn" onclick="closeModal('printCenterModal')">✕</button>
+      </div>
+      <div class="form-group"><label>نوع الطباعة</label><select id="rbPrintType" onchange="rbPrintTypeChanged()" style="font-size:1rem;padding:10px;">
+        <option value="intake">🧾 وصل استلام الزبون</option><option value="delivery">📦 وصل تسليم الجهاز</option><option value="repair">🛠️ وصل تصليح</option>
+        <option value="archived">📚 قائمة الأجهزة المسلمة والمؤرشفة</option><option value="workshop">🛠️ قائمة أجهزة الورشة</option><option value="waiting">⏳ قائمة الأجهزة في الانتظار</option><option value="tech_ready">✅ الأجهزة الجاهزة عند الفني</option><option value="ready_store">🎉 الأجهزة الجاهزة للتسليم بالمحل</option><option value="active">📋 كل الأجهزة النشطة</option><option value="all">📚 كل الأجهزة</option>
+        <option value="daily">📅 تقرير يومي</option><option value="monthly">🗓️ تقرير شهري</option><option value="yearly">📆 تقرير سنوي</option>
+      </select></div>
+      <div id="rbPrintReceiptFields"><div class="form-group"><label>رقم الوصل</label><input id="rbPrintReceiptInput" placeholder="1001 أو REC-1001" onkeyup="if(event.key==='Enter') previewPrintCenter()"></div></div>
+      <div id="rbPrintPeriodFields" style="display:none;"><div class="form-group"><label>الفترة</label><select id="rbPrintPeriod"><option value="today">اليوم</option><option value="month">هذا الشهر</option><option value="year">هذه السنة</option><option value="all">كل الفترات</option></select></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-success" onclick="previewPrintCenter()">👁️ معاينة</button><button class="btn" onclick="printCenterNow()">🖨️ طباعة</button><button class="btn" style="background:#CBD5E0;" onclick="closeModal('printCenterModal')">إغلاق</button></div>
+      <div id="rbPrintPreview" style="margin-top:15px;"></div>
+    </div>
   </div>
 
   <!-- MODAL: LOGIN / PIN -->
@@ -2944,6 +2982,17 @@ window.rbDirectReturn = function(btn){
   </div>
 </div>
 
+<!-- MODAL: INVENTORY & SPARE PARTS -->
+<div class="modal-overlay" id="inventoryModal"><div class="modal-card rb-inventory-modal">
+<div class="rb-inv-head"><div><span class="admin-eyebrow">إدارة المخزون</span><h3>📦 المخزون وقطع الغيار</h3><p>تسجيل القطع، متابعة الكميات، والإضافة أو الصرف مع سجل للحركات.</p></div><button class="icon-close-btn" onclick="closeModal('inventoryModal')">✕</button></div>
+<div class="rb-inv-stats"><div><b id="rbInvPartsCount">0</b><span>عدد القطع</span></div><div><b id="rbInvTotalQty">0</b><span>إجمالي الكمية</span></div><div class="low"><b id="rbInvLowCount">0</b><span>منخفض المخزون</span></div><div><b id="rbInvPurchaseValue">0 دج</b><span>قيمة الشراء</span></div></div>
+<div class="rb-inv-toolbar"><input id="rbInvSearch" placeholder="🔎 اسم، رقم، SKU، موديل، مورد..." oninput="renderInventory()"><select id="rbInvTypeFilter" onchange="renderInventory()"><option value="">كل الأنواع</option></select><select id="rbInvCategoryFilter" onchange="renderInventory()"><option value="">كل التصنيفات</option></select><select id="rbInvFilter" onchange="renderInventory()"><option value="all">كل القطع</option><option value="low">منخفض المخزون</option></select><button class="btn btn-success" style="width:auto" onclick="openInventoryPartForm()">＋ إضافة قطعة</button><button class="btn btn-info" style="width:auto" onclick="loadInventory()">🔄 تحديث</button></div>
+<div id="rbInventoryTable" class="rb-inv-table-wrap"><div class="rb-inv-loading">جاري تحميل المخزون...</div></div>
+<div id="rbInventoryForm" class="rb-inv-form" style="display:none"><div class="rb-inv-form-head"><h4 id="rbInvFormTitle">إضافة قطعة جديدة</h4><button class="btn-sm btn-danger" onclick="closeInventoryPartForm()">✕</button></div><input type="hidden" id="rbInvRowId"><div class="rb-inv-grid">
+<label>اسم القطعة *<input id="rbInvName" placeholder="مثال: شاشة iPhone 11"></label><label>نوع القطعة *<select id="rbInvType"></select><span class="rb-add-list"><input id="rbInvNewType" placeholder="نوع جديد"><button type="button" onclick="addInventoryList('type')">＋</button></span></label><label>التصنيف *<select id="rbInvCategory"></select><span class="rb-add-list"><input id="rbInvNewCategory" placeholder="تصنيف جديد"><button type="button" onclick="addInventoryList('category')">＋</button></span></label><label>الموديلات المتوافقة<input id="rbInvModels" list="rbInvModelList" placeholder="يتم تعبئتها من إدارة التوافق"><datalist id="rbInvModelList"></datalist><span class="rb-model-hint">التوافق التفصيلي يتم تحديده من زر «التوافق» لكل قطعة.</span><span class="rb-add-list"><input id="rbInvNewModel" placeholder="موديل جديد"><button type="button" onclick="addInventoryModelUI()">＋</button></span></label><label>SKU / كود القطعة<input id="rbInvSku" placeholder="اختياري"></label><label>الموقع<input id="rbInvLocation" placeholder="مثال: رف A-03"></label><label>الحد الأدنى<input id="rbInvMin" type="number" min="0" value="1"></label><label>المورد<input id="rbInvSupplier" placeholder="اسم المورد (اختياري)"></label><label>الكمية الحالية<input id="rbInvQty" type="number" min="0" value="0"></label><label>سعر الشراء (دج)<input id="rbInvPurchase" type="number" min="0" value="0"></label><label>سعر البيع (دج)<input id="rbInvSale" type="number" min="0" value="0"></label></div><label>ملاحظات<textarea id="rbInvNotes" rows="2" placeholder="ملاحظات عن القطعة أو الجودة..."></textarea><div style="display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin-top:10px"><button class="btn btn-success" style="width:auto" onclick="saveInventoryPartUI()">💾 حفظ القطعة</button><button class="btn" style="width:auto;background:#64748B" onclick="closeInventoryPartForm()">إلغاء</button></div></div>
+<div id="rbInventoryCompatibilityForm" class="rb-inv-form rb-compat-form" style="display:none"><div class="rb-inv-form-head"><h4 id="rbInvCompatTitle">توافق القطعة</h4><button class="btn-sm btn-danger" onclick="closeInventoryCompatibilityForm()">✕</button></div><input type="hidden" id="rbInvCompatPartId"><div class="rb-compat-add"><select id="rbInvCompatType" onchange="rbInvCompatTypeChanged()"><option value="">اختر نوع الجهاز</option></select><select id="rbInvCompatBrand" onchange="rbInvCompatBrandChanged()"><option value="">اختر الماركة</option></select><select id="rbInvCompatModel"><option value="">اختر الموديل</option></select><button class="btn btn-info" style="width:auto" onclick="addInventoryCompatibilityRow()">＋ إضافة توافق</button></div><div class="rb-model-hint">اختر نوع الجهاز ثم الماركة ثم الموديل، ويمكن إضافة عدة موديلات للقطعة نفسها.</div><div id="rbInvCompatRows" class="rb-compat-rows"><div class="rb-inv-loading">لا توجد توافقات مضافة.</div></div><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success" style="width:auto" onclick="saveInventoryCompatibilityUI()">💾 حفظ التوافق</button><button class="btn" style="width:auto;background:#64748B" onclick="closeInventoryCompatibilityForm()">إلغاء</button></div></div><div id="rbInventoryStockForm" class="rb-inv-stock-form" style="display:none"><h4 id="rbInvStockTitle">حركة مخزون</h4><input type="hidden" id="rbInvStockRowId"><div class="rb-inv-stock-grid"><label>نوع الحركة<select id="rbInvMoveType"><option>إضافة</option><option>صرف</option></select></label><label>الكمية<input id="rbInvMoveQty" type="number" min="1" value="1"></label><label>رقم الوصل (اختياري)<input id="rbInvMoveReceipt" placeholder="REC-1001"></label><label>البيان<input id="rbInvMoveNote" placeholder="شراء / صرف لفني / تلف..."></label></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-success" style="width:auto" onclick="saveInventoryMovementUI()">تسجيل الحركة</button><button class="btn" style="width:auto;background:#64748B" onclick="closeInventoryStockForm()">إلغاء</button></div></div>
+</div></div>
+
 <!-- MODAL: ADMIN SETTINGS -->
 <div class="modal-overlay" id="adminSettingsModal">
   <div class="modal-card admin-settings-modal" style="max-width:700px;">
@@ -3067,60 +3116,60 @@ window.rbDirectReturn = function(btn){
 /* RepairBox V24.60 External PWA bridge.
    The static PWA keeps the existing google.script.run call sites unchanged.
    It talks to a tiny Apps Script iframe bridge when online. */
-<script>
-/* RepairBox V24.60 Direct Fetch Bridge */
 (function () {
   if (window.google && google.script && google.script.run) return;
 
-  var BRIDGE_URL = window.REPAIRBOX_BRIDGE_URL || 'https://script.google.com/macros/s/AKfycbxV52E5NcjDPTAv8d_z76gkSAbyULgPxgcWgOjpbYYPFNw1u1WYsYBheuzue0Emj5L/exec';
+  var BRIDGE_URL = (window.REPAIRBOX_BRIDGE_URL || 'https://script.google.com/macros/s/REPLACE_WITH_YOUR_DEPLOYMENT_ID/exec?bridge=1');
+  var frame, ready = false, seq = 0, pending = {}, waitQueue = [];
 
-  window.google = window.google || {};
-  window.google.script = window.google.script || {};
-
-  function Runner(successHandler, failureHandler) {
-    this._success = successHandler || null;
-    this._failure = failureHandler || null;
+  function ensureFrame() {
+    if (frame) return;
+    frame = document.createElement('iframe');
+    frame.id = 'repairboxBridgeFrame';
+    frame.src = BRIDGE_URL;
+    frame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;left:-10px;bottom:-10px;';
+    document.documentElement.appendChild(frame);
   }
-
-  Runner.prototype.withSuccessHandler = function (fn) {
-    return new Runner(fn, this._failure);
-  };
-
-  Runner.prototype.withFailureHandler = function (fn) {
-    return new Runner(this._success, fn);
-  };
-
-  // معالجة استدعاء أي دالة ديناميكياً
-  window.google.script.run = new Proxy(new Runner(), {
-    get: function (target, prop) {
-      if (prop in target) return target[prop];
-
-      return function () {
-        var args = Array.prototype.slice.call(arguments);
-        var success = target._success;
-        var failure = target._failure;
-
-        fetch(BRIDGE_URL, {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: prop, args: args })
-        })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data.status === 'success' || data.success) {
-            if (success) success(data.result !== undefined ? data.result : data);
-          } else {
-            if (failure) failure(data.error || 'Execution failed');
-          }
-        })
-        .catch(function (err) {
-          console.error('Bridge Error:', err);
-          if (failure) failure(err);
-        });
-      };
+  function call(method, args, success, failure, userObject) {
+    ensureFrame();
+    var id = 'rb_' + Date.now() + '_' + (++seq) + '_' + Math.random().toString(36).slice(2);
+    pending[id] = {success:success, failure:failure, userObject:userObject};
+    var msg={type:'REPAIRBOX_RPC', id:id, method:method, args:args || []};
+    try {
+      if (ready) frame.contentWindow.postMessage(msg, '*'); else waitQueue.push(msg);
+    } catch (e) {
+      var p=pending[id]; delete pending[id]; if(p&&p.failure)p.failure(e,p.userObject);
     }
+  }
+  window.addEventListener('message', function (ev) {
+    var d=ev.data||{};
+    if (d.type==='REPAIRBOX_BRIDGE_READY') { ready=true; while(waitQueue.length){ try { var q=waitQueue.shift(); frame.contentWindow.postMessage(q, '*'); } catch(e){} } return; }
+    if (d.type!=='REPAIRBOX_RPC_RESULT' || !pending[d.id]) return;
+    var p=pending[d.id]; delete pending[d.id];
+    if (d.ok) { if(p.success)p.success(d.result,p.userObject); }
+    else { if(p.failure)p.failure(d.error,p.userObject); }
   });
+
+  function runner(success, failure, userObject) {
+    var api = {
+      withSuccessHandler:function(fn){return runner(fn,failure,userObject);},
+      withFailureHandler:function(fn){return runner(success,fn,userObject);},
+      withUserObject:function(obj){return runner(success,failure,obj);}
+    };
+    return new Proxy(api,{get:function(target,prop){
+      if(prop in target) return target[prop];
+      if(typeof prop!=='string') return undefined;
+      return function(){
+        var args=Array.prototype.slice.call(arguments);
+        call(prop,args,success,failure,userObject);
+        return api;
+      };
+    }});
+  }
+  window.google = window.google || {};
+  google.script = google.script || {};
+  google.script.run = runner(null,null,null);
+  ensureFrame();
 })();
 </script>
 <script>
@@ -3141,14 +3190,14 @@ window.rbDirectReturn = function(btn){
   const READ_METHODS = new Set([
     'globalSearchDeviceByCode','getTopStatsSummary','getTechPersonalReports','getTechPersonalReportsAdvanced',
     'getAdminFinancialSummary','getAllActiveDevicesForAdmin','getTechPaymentsList',
-    'getConnectedUsersLog','getDevicesByStage','searchForStoreReceive','getDailyFinancialSummary','getTechBalanceHistory','getTechCurrentBalance'
+    'getConnectedUsersLog','getDevicesByStage','searchForStoreReceive','getDailyFinancialSummary','getDailyDeliveredDevices','getTechBalanceHistory','getTechCurrentBalance'
   ]);
 
   const WRITE_METHODS = new Set([
     'saveDevice','updateWaitingDevice','cancelWaitingReceipt','sendToWorkshop',
     'confirmWorkshopReceipt','markDeviceAsRepairedByTech','techSendToStoreAction',
     'receiveDeviceToStore','processPaymentAndDeliver','payTechAmount',
-    'updateTechPayment','addNewWorker','returnToWorkshopAction','returnDeviceToWorkshop'
+    'updateTechPayment','addNewWorker','returnToWorkshopAction','returnDeviceToWorkshop','adminEditDevicePrices'
   ]);
 
   function persist() {
@@ -3207,6 +3256,8 @@ window.rbDirectReturn = function(btn){
       return {success:true, monthlyRevenue:0,totalRevenue:0,totalTechEarned:0,totalTechPaid:0,totalTechRemaining:0,techsList:[]};
     if (method === 'getDailyFinancialSummary')
       return {success:true, todayStr:'اليوم', dailyRevenue:0, totalTechRights:0, dailyProfit:0, deliveredCount:0, techRightsList:[], devices:[]};
+    if (method === 'getDailyDeliveredDevices')
+      return {success:true, todayStr:'اليوم', deliveredCount:0, devices:[]};
     if (method === 'getTechBalanceHistory')
       return {success:true, totalEarned:0, totalPaid:0, netBalance:0, events:[]};
     if (method === 'getTechCurrentBalance')
@@ -3434,6 +3485,8 @@ window.rbDirectReturn = function(btn){
 
     function executeQuickSearch() {
       let query = document.getElementById('quickSearchInput').value.trim();
+      // لا نضيف REC- هنا: قد يكون الإدخال رقم هاتف.
+      // دالة البحث في CODE تميّز تلقائياً بين رقم الوصل ورقم الهاتف وتدعم +213 والمسافات.
       let resultsContainer = document.getElementById('quickSearchResults');
       
       if (!query) {
@@ -3778,6 +3831,7 @@ function loginWithPin() {
   document.getElementById('tabBtnAdmin').style.display = (currentUser.role === 'ADMIN') ? 'inline-block' : 'none';
   document.getElementById('tabBtnReceive').style.display = (currentUser.role === 'TECH') ? 'none' : 'inline-block';
   document.getElementById('heroBtnGroup').style.display = (currentUser.role === 'ADMIN' || currentUser.role === 'STORE') ? 'flex' : 'none';
+  var printSide=document.getElementById('sidebarPrintCenterBtn'); if(printSide) printSide.style.display=(currentUser.role==='ADMIN'||currentUser.role==='STORE')?'flex':'none';
 
   // 🔴 إخفاء زر الإرجاع RETOUR عن الفني وإظهاره للاستقبال
   let retourBtn = document.getElementById('retourMainBtn');
@@ -3911,22 +3965,57 @@ function loadTechReportData(techName, filter){
   const result=document.getElementById('techReportResult');
   if(!result) return;
   result.innerHTML='<div style="text-align:center;padding:25px;color:#111827;font-weight:800;">جاري تحميل التقرير...</div>';
+  const f=filter||{type:'month',month:new Date().toISOString().slice(0,7)};
+
+  // V24.71: نعتمد على الدالة القديمة الموجودة فعلياً في الجسر أيضاً،
+  // ثم نفلتر النتيجة محلياً. هذا يمنع ظهور «فشل تحميل التقارير المالية»
+  // عندما تكون نسخة الجسر المنشورة أقدم من getTechPersonalReportsAdvanced.
   google.script.run.withSuccessHandler(function(res){
-    if(!res || !res.success){ result.innerHTML='<div style="padding:20px;text-align:center;color:#B91C1C;font-weight:900;">تعذر تحميل التقرير: '+escapeHtml((res&&res.error)||'خطأ غير معروف')+'</div>'; return; }
-    const periodLabel = res.periodLabel || 'الفترة المحددة';
+    if(!res || !res.success){
+      result.innerHTML='<div style="padding:20px;text-align:center;color:#B91C1C;font-weight:900;">تعذر تحميل التقرير: '+escapeHtml((res&&res.error)||'خطأ غير معروف')+'</div>'; return;
+    }
+    function toDate(v){
+      if(v instanceof Date && !isNaN(v.getTime())) return v;
+      const x=String(v||'').trim(); if(!x) return null;
+      const d=new Date(x.replace(/-/g,'/')); return isNaN(d.getTime())?null:d;
+    }
+    function inRange(v){
+      const d=toDate(v); if(!d) return false;
+      const type=String(f.type||'month');
+      if(type==='day') return String(f.day||'')===d.toISOString().slice(0,10);
+      if(type==='year') return String(f.year||'')===String(d.getFullYear());
+      if(type==='monthSpecific') return String(f.month||'')===d.toISOString().slice(0,7);
+      if(type==='custom'){
+        const a=String(f.start||''), b=String(f.end||''); const key=d.toISOString().slice(0,10);
+        return !!a&&!!b&&key>=a&&key<=b;
+      }
+      return String(f.month||new Date().toISOString().slice(0,7))===d.toISOString().slice(0,7);
+    }
+    const devices=(res.devices||[]).filter(function(d){return inRange(d.exitDate||d.date);});
+    const payments=(res.payments||[]).filter(function(p){return inRange(p.date);});
+    const earned=devices.reduce(function(a,d){return a+Number(d.techCost||0);},0);
+    const paid=payments.reduce(function(a,p){return a+Number(p.amount||0);},0);
+    let periodLabel='الفترة المحددة';
+    if(f.type==='day') periodLabel='يوم '+f.day;
+    else if(f.type==='year') periodLabel='سنة '+f.year;
+    else if(f.type==='monthSpecific') periodLabel='شهر '+f.month;
+    else if(f.type==='custom') periodLabel=f.start+' إلى '+f.end;
+    else periodLabel='شهر '+(f.month||new Date().toISOString().slice(0,7));
+    const safeTech=escapeHtml(String(techName||''));
     result.innerHTML=`
-      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:10px 12px;margin-bottom:12px;color:#111827;font-weight:900;">👨‍🔧 تقرير: ${escapeHtml(techName)} — ${escapeHtml(periodLabel)}</div>
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:10px 12px;margin-bottom:12px;color:#111827;font-weight:900;">👨‍🔧 تقرير: ${safeTech} — ${escapeHtml(periodLabel)}</div>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px;">
-        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="color:#111827;font-weight:800;">الأجهزة المنجزة</small><div style="font-size:1.25rem;font-weight:900;color:#111827;">${Number(res.repairedCount||0).toLocaleString('ar-DZ')}</div></div>
-        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="color:#111827;font-weight:800;">حقوق الفترة</small><div style="font-size:1.25rem;font-weight:900;color:#111827;">${Number(res.totalEarned||0).toLocaleString('ar-DZ')} دج</div></div>
-        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="color:#111827;font-weight:800;">المدفوع في الفترة</small><div style="font-size:1.25rem;font-weight:900;color:#111827;">${Number(res.totalPaid||0).toLocaleString('ar-DZ')} دج</div></div>
+        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="font-weight:800;">الأجهزة المنجزة</small><div style="font-size:1.25rem;font-weight:900;">${devices.length.toLocaleString('ar-DZ')}</div></div>
+        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="font-weight:800;">حقوق الفترة</small><div style="font-size:1.25rem;font-weight:900;">${earned.toLocaleString('ar-DZ')} دج</div></div>
+        <div style="background:#fff;border:1px solid #CBD5E1;border-radius:10px;padding:12px;text-align:center;color:#111827;"><small style="font-weight:800;">المدفوع في الفترة</small><div style="font-size:1.25rem;font-weight:900;">${paid.toLocaleString('ar-DZ')} دج</div></div>
       </div>
       <div style="overflow:auto;border:1px solid #CBD5E1;border-radius:12px;background:#fff;max-height:360px;">
         <table style="width:100%;border-collapse:collapse;min-width:620px;color:#111827;"><thead><tr style="background:#E2E8F0;color:#111827;"><th>الوصل</th><th>الجهاز</th><th>العطل</th><th>حقوق الفني</th><th>التاريخ</th></tr></thead><tbody>
-        ${(res.devices||[]).length ? (res.devices||[]).map(d=>`<tr><td style="font-weight:900;">${escapeHtml(d.receipt)}</td><td>${escapeHtml(d.deviceType)}</td><td>${escapeHtml(d.problem)}</td><td style="font-weight:900;color:#111827;">${Number(d.techCost||0).toLocaleString('ar-DZ')} دج</td><td>${escapeHtml(d.exitDate)}</td></tr>`).join('') : '<tr><td colspan="5" style="padding:25px;text-align:center;color:#111827;font-weight:800;">لا توجد أجهزة منجزة في هذه الفترة.</td></tr>'}
-        </tbody></table>
-      </div>`;
-  }).withFailureHandler(function(err){ result.innerHTML='<div style="padding:20px;text-align:center;color:#B91C1C;font-weight:900;">تعذر الاتصال بالخادم: '+escapeHtml((err&&err.message)||err||'خطأ غير معروف')+'</div>'; }).getTechPersonalReportsAdvanced(techName, filter);
+        ${devices.length ? devices.map(function(d){return '<tr><td>'+escapeHtml(d.receipt||'')+'</td><td>'+escapeHtml(d.deviceType||'')+'</td><td>'+escapeHtml(d.problem||'')+'</td><td>'+Number(d.techCost||0).toLocaleString('ar-DZ')+' دج</td><td>'+escapeHtml(d.exitDate||'')+'</td></tr>';}).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:#64748B;">لا توجد أجهزة منجزة في هذه الفترة.</td></tr>'}
+        </tbody></table></div>`;
+  }).withFailureHandler(function(err){
+    result.innerHTML='<div style="padding:20px;text-align:center;color:#B91C1C;font-weight:900;">تعذر الاتصال بالخادم: '+escapeHtml((err&&err.message)||err||'خطأ غير معروف')+'</div>';
+  }).getTechPersonalReports(techName,'ALL');
 }
 
 function openWorkshopStatisticsModal(){
@@ -5005,7 +5094,8 @@ window.openTechBalanceHistoryModal=openTechBalanceHistoryModal;
 
 
     function searchCodeForReceive() {
-      let q = document.getElementById('codeSearchInput').value;
+      let q = document.getElementById('codeSearchInput').value.trim();
+      if (/^\d+$/.test(q)) q = 'REC-' + q;
       google.script.run.withSuccessHandler(function(res) {
         if(res.success) {
           let container = document.getElementById('codeSearchResults');
@@ -5278,9 +5368,7 @@ function confirmDeviceCompletion() {
           : '<span style="color:#22C55E;font-weight:900;">' + remaining.toLocaleString('ar-DZ') + ' دج</span>';
         tr.innerHTML =
           '<td><div class="rb-tech-name-cell"><b>' + tech.name + '</b></div></td>' +
-          '<td style="color:#60A5FA;font-weight:bold;">' + earned.toLocaleString('ar-DZ') + ' دج</td>' +
-          '<td style="color:#22C55E;font-weight:bold;">' + paid.toLocaleString('ar-DZ') + ' دج</td>' +
-          '<td>' + balanceText + '</td>' +
+          '<td>' + balanceText + '<br><small style="color:#64748B;">اضغط «السجل» للتفاصيل</small></td>' +
           '<td>' +
             '<button class="btn-sm btn-info" onclick="openPayTechModal(\'' + tech.name + '\')">تسديد 💵</button>' +
             '<button class="btn-sm" style="background:#475569;color:white;" onclick="openTechRepairedModal(\'' + tech.name + '\')">الأجهزة 📋</button>' +
@@ -5291,6 +5379,44 @@ function confirmDeviceCompletion() {
       });
       adminTechTableLoaded = true;
       setTimeout(rbRefreshAdminTechChatBadges, 0);
+    }
+
+
+    function openPrintCenterModal(){
+      var m=document.getElementById('printCenterModal'); if(m)m.style.display='flex';
+      document.getElementById('rbPrintReceiptInput').value=''; document.getElementById('rbPrintPreview').innerHTML=''; rbPrintTypeChanged();
+    }
+    function rbPrintTypeChanged(){
+      var t=document.getElementById('rbPrintType').value, receipt=['intake','delivery','repair'].includes(t);
+      document.getElementById('rbPrintReceiptFields').style.display=receipt?'block':'none';
+      document.getElementById('rbPrintPeriodFields').style.display=(!receipt && ['daily','monthly','yearly'].includes(t))?'block':'none';
+    }
+    function rbPrintEsc(v){return escapeHtml(v==null?'':v)}
+    function rbPrintMoney(v){return Number(v||0).toLocaleString('ar-DZ')+' دج'}
+    function rbReceiptHtml(d,type){
+      var title=type==='intake'?'🧾 وصل استلام الجهاز':type==='delivery'?'📦 وصل تسليم الجهاز':'🛠️ وصل تصليح';
+      var extra=type==='intake'?'<div><b>العطل:</b> '+rbPrintEsc(d.problem)+'</div>':type==='delivery'?'<div><b>السعر النهائي:</b> '+rbPrintMoney(d.salePrice)+'</div><div><b>حالة الجهاز:</b> '+rbPrintEsc(d.status)+'</div>':'<div><b>الفني:</b> '+rbPrintEsc(d.techName)+'</div><div><b>تفاصيل الإصلاح:</b> '+rbPrintEsc(d.repairDetails||'—')+'</div><div><b>حقوق الفني:</b> '+rbPrintMoney(d.techCost)+'</div><div><b>السعر:</b> '+rbPrintMoney(d.salePrice)+'</div>';
+      return '<div class="rb-print-sheet"><h2>'+title+'</h2><div class="rb-print-grid"><div><b>رقم الوصل:</b> '+rbPrintEsc(d.receipt)+'</div><div><b>التاريخ:</b> '+rbPrintEsc(d.date)+'</div><div><b>الزبون:</b> '+rbPrintEsc(d.customerName)+'</div><div><b>الهاتف:</b> '+rbPrintEsc(d.customerPhone)+'</div><div><b>الجهاز:</b> '+rbPrintEsc([d.deviceType,d.brand,d.model].filter(Boolean).join(' '))+'</div><div><b>الشروط والأحكام:</b> يرجى استلام الجهاز خلال شهر من تاريخ إشعار الجاهزية.</div>'+extra+'</div><p class="rb-print-thanks">شكراً لثقتكم بـ RepairBox</p></div>';
+    }
+    function rbListHtml(data,title,summary){
+      var h='<div class="rb-print-sheet"><h2>'+title+'</h2><p><b>عدد الأجهزة:</b> '+data.length+(summary&&summary.revenue!==undefined?' &nbsp; | &nbsp; <b>المداخيل:</b> '+rbPrintMoney(summary.revenue)+' &nbsp; | &nbsp; <b>حقوق الفنيين:</b> '+rbPrintMoney(summary.tech):'')+'</p><div style="overflow:auto"><table class="rb-print-table"><thead><tr><th>الوصل</th><th>الزبون</th><th>الجهاز</th><th>الفني</th><th>الحالة</th><th>السعر</th></tr></thead><tbody>'+data.map(function(d){return '<tr><td>'+rbPrintEsc(d.receipt)+'</td><td>'+rbPrintEsc(d.customerName)+'<br>'+rbPrintEsc(d.customerPhone)+'</td><td>'+rbPrintEsc(d.deviceType)+'</td><td>'+rbPrintEsc(d.techName)+'</td><td>'+rbPrintEsc(d.status)+'</td><td>'+rbPrintMoney(d.salePrice)+'</td></tr>'}).join('')+'</tbody></table></div></div>';
+      return h;
+    }
+    function previewPrintCenter(){
+      var t=document.getElementById('rbPrintType').value, box=document.getElementById('rbPrintPreview'); box.innerHTML='<div style="padding:20px;text-align:center">جاري التحضير...</div>';
+      if(['intake','delivery','repair'].includes(t)){
+        var receipt=document.getElementById('rbPrintReceiptInput').value.trim(); if(/^\d+$/.test(receipt)) receipt='REC-'+receipt; if(!receipt){box.innerHTML='<div class="alert alert-error">أدخل رقم الوصل.</div>';return;}
+        google.script.run.withSuccessHandler(function(res){if(!res||!res.success){box.innerHTML='<div class="alert alert-error">'+rbPrintEsc(res&&res.error||'تعذر العثور على الوصل')+'</div>';return;}box.innerHTML=rbReceiptHtml(res.data,t);}).withFailureHandler(function(e){box.innerHTML='<div class="alert alert-error">تعذر التحميل.</div>';}).getPrintDevice(receipt);
+      }else{
+        var period=['daily','monthly','yearly'].includes(t)?document.getElementById('rbPrintPeriod').value:'all';
+        google.script.run.withSuccessHandler(function(res){if(!res||!res.success){box.innerHTML='<div class="alert alert-error">'+rbPrintEsc(res&&res.error||'تعذر تحميل القائمة')+'</div>';return;}var names={archived:'📚 الأجهزة المسلمة والمؤرشفة',workshop:'🛠️ أجهزة الورشة',waiting:'⏳ الأجهزة في الانتظار',tech_ready:'✅ الأجهزة الجاهزة عند الفني',ready_store:'🎉 الأجهزة الجاهزة للتسليم بالمحل',active:'📋 كل الأجهزة النشطة',all:'📚 كل الأجهزة',daily:'📅 التقرير اليومي',monthly:'🗓️ التقرير الشهري',yearly:'📆 التقرير السنوي'};box.innerHTML=rbListHtml(res.data||[],names[t],res.summary);}).withFailureHandler(function(){box.innerHTML='<div class="alert alert-error">تعذر تحميل البيانات.</div>';}).getPrintReport(t,period);
+      }
+    }
+    function printCenterNow(){
+      var content=document.getElementById('rbPrintPreview').innerHTML;
+      if(!content){alert('اعرض المعاينة أولاً.');return;}
+      var w=window.open('','_blank','width=900,height=700'); if(!w){window.print();return;}
+      w.document.write('<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>RepairBox - طباعة</title><style>@page{size:auto;margin:10mm}body{font-family:Arial,sans-serif;color:#111;margin:0}.rb-print-sheet{max-width:900px;margin:0 auto;padding:15px}.rb-print-sheet h2{text-align:center;margin:0 0 18px}.rb-print-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #CBD5E1;padding:15px}.rb-print-grid>div{padding:7px;border-bottom:1px dashed #CBD5E1}.rb-print-thanks{text-align:center;margin-top:25px}.rb-print-table{width:100%;border-collapse:collapse;font-size:12px}.rb-print-table th,.rb-print-table td{border:1px solid #CBD5E1;padding:6px;text-align:right}.rb-print-table th{font-weight:800}@media print{.rb-print-sheet{padding:0}}</style></head><body>'+content+'</body></html>');w.document.close();w.focus();setTimeout(function(){w.print();},300);
     }
 
     function loadAdminFinancials(period, fromFilter) {
@@ -5907,7 +6033,160 @@ function openTechRepairedModal(techName, selectedMonth) {
       alert("حدث خطأ أثناء جلب البيانات: " + res.error);
     }
   }).getTechPersonalReports(currentSelectedTechName, targetMonth);
-}function openDailyFinancialModal() {
+}
+function openDailyDeliveredStoreModal() {
+  if (!currentUser || (currentUser.role !== 'STORE' && currentUser.role !== 'ADMIN')) return;
+  const modal = document.getElementById('dailyDeliveredStoreModal');
+  const container = document.getElementById('dailyDeliveredStoreContainer');
+  if (!modal || !container) return;
+  modal.style.display = 'flex';
+  container.innerHTML = '<p style="text-align:center;padding:20px;">جاري جلب الأجهزة المسلمة اليوم...</p>';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        container.innerHTML = '<p style="color:#DC2626;text-align:center;padding:20px;">' + escapeHtml((res && res.error) || 'تعذر تحميل التقرير.') + '</p>';
+        return;
+      }
+
+      let html = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px;margin-bottom:14px;">
+          <div><b style="color:#1D4ED8;">📦 الأجهزة المسلمة فعلياً اليوم</b><div style="font-size:.8rem;color:#64748B;margin-top:3px;">عن تاريخ ${escapeHtml(res.todayStr || 'اليوم')}</div></div>
+          <strong style="font-size:1.15rem;color:#1D4ED8;">${Number(res.deliveredCount || 0).toLocaleString('ar-DZ')} جهاز</strong>
+        </div>
+        <div style="overflow:auto;">
+          <table class="tech-pay-table" style="width:100%;">
+            <thead><tr><th>الوصل</th><th>الزبون</th><th>الجهاز</th><th>الفني</th><th>وقت التسليم</th></tr></thead>
+            <tbody>`;
+
+      if (!res.devices || !res.devices.length) {
+        html += '<tr><td colspan="5" style="text-align:center;padding:20px;color:#64748B;">لم يتم تسليم أي جهاز اليوم حتى الآن.</td></tr>';
+      } else {
+        res.devices.forEach(function(dev) {
+          html += '<tr>' +
+            '<td><b>' + escapeHtml(dev.receipt || '') + '</b></td>' +
+            '<td>' + escapeHtml(dev.customerName || '') + '</td>' +
+            '<td>' + escapeHtml(dev.deviceType || '') + '</td>' +
+            '<td>' + escapeHtml(dev.techName || '') + '</td>' +
+            '<td><small>' + escapeHtml(dev.deliveryDate || '') + '</small></td>' +
+            '</tr>';
+        });
+      }
+
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+    })
+    .withFailureHandler(function(err) {
+      container.innerHTML = '<p style="color:#DC2626;text-align:center;padding:20px;">فشل الاتصال: ' + escapeHtml(err && err.message ? err.message : 'خطأ غير معروف') + '</p>';
+    })
+    .getDailyDeliveredDevices(currentUser.role);
+}
+
+function openAdminPriceEditModal() {
+  if (!currentUser || currentUser.role !== 'ADMIN') return;
+  const modal = document.getElementById('adminPriceEditModal');
+  const search = document.getElementById('adminPriceSearchInput');
+  const results = document.getElementById('adminPriceSearchResults');
+  const form = document.getElementById('adminPriceEditForm');
+  if (!modal || !search || !results || !form) return;
+  modal.style.display = 'flex';
+  search.value = '';
+  results.innerHTML = '<div style="padding:12px;color:#64748B;">ابحث برقم الوصل ثم اختر الجهاز لتعديل السعر.</div>';
+  form.style.display = 'none';
+  document.getElementById('adminPriceRowId').value = '';
+}
+
+function searchAdminPriceDevice() {
+  const q = String(document.getElementById('adminPriceSearchInput').value || '').trim();
+  const results = document.getElementById('adminPriceSearchResults');
+  if (!q) {
+    results.innerHTML = '<div style="padding:12px;color:#DC2626;">أدخل رقم الوصل.</div>';
+    return;
+  }
+  results.innerHTML = '<div style="padding:12px;text-align:center;">جاري البحث...</div>';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        results.innerHTML = '<div style="padding:12px;color:#DC2626;">' + escapeHtml((res && res.error) || 'تعذر البحث.') + '</div>';
+        return;
+      }
+      const data = res.data || [];
+      if (!data.length) {
+        results.innerHTML = '<div style="padding:12px;text-align:center;color:#64748B;">لم يتم العثور على الجهاز.</div>';
+        return;
+      }
+
+      let html = '<div style="display:grid;gap:8px;margin-top:8px;">';
+      data.slice(0,10).forEach(function(d) {
+        html += '<button type="button" style="text-align:right;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:9px;padding:11px;cursor:pointer;" onclick=\'selectAdminPriceDevice(' + JSON.stringify(JSON.stringify(d)) + ')\'>' +
+          '<b>' + escapeHtml(d.receipt || '') + '</b> — ' + escapeHtml(d.customerName || '') +
+          '<div style="font-size:.8rem;color:#64748B;margin-top:4px;">' + escapeHtml(d.deviceType || '') + ' | الفني: ' + escapeHtml(d.techName || '') + ' | حقوق الفني: ' + Number(d.techCost || 0).toLocaleString('ar-DZ') + ' دج</div>' +
+          '</button>';
+      });
+      html += '</div>';
+      results.innerHTML = html;
+    })
+    .withFailureHandler(function(err) {
+      results.innerHTML = '<div style="padding:12px;color:#DC2626;">فشل الاتصال: ' + escapeHtml(err && err.message ? err.message : 'خطأ غير معروف') + '</div>';
+    })
+    .globalSearchDeviceByCode(q);
+}
+
+function selectAdminPriceDevice(serialized) {
+  const d = JSON.parse(serialized);
+  document.getElementById('adminPriceRowId').value = d.rowId || '';
+  document.getElementById('adminPriceReceipt').innerText = d.receipt || '';
+  document.getElementById('adminPriceDeviceInfo').innerText = [d.customerName, d.deviceType].filter(Boolean).join(' — ');
+  document.getElementById('adminPriceTechName').innerText = d.techName || 'غير محدد';
+  document.getElementById('adminPriceTechCost').value = Number(d.techCost || 0);
+  document.getElementById('adminPriceSalePrice').value = Number(d.salePrice || 0);
+  document.getElementById('adminPriceReason').value = '';
+  document.getElementById('adminPriceEditForm').style.display = 'block';
+}
+
+function saveAdminPriceEdit() {
+  if (!currentUser || currentUser.role !== 'ADMIN') return;
+  const rowId = document.getElementById('adminPriceRowId').value;
+  const techCost = document.getElementById('adminPriceTechCost').value;
+  const salePrice = document.getElementById('adminPriceSalePrice').value;
+  const reason = document.getElementById('adminPriceReason').value;
+
+  if (!rowId || techCost === '' || salePrice === '') {
+    alert('يرجى إدخال سعر التصليح والسعر النهائي.');
+    return;
+  }
+
+  if (!confirm('تأكيد تعديل الأسعار للجهاز ' + document.getElementById('adminPriceReceipt').innerText + '؟')) return;
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res && res.success) {
+        closeModal('adminPriceEditModal');
+        if (typeof loadAdminFinancials === 'function') loadAdminFinancials();
+        if (typeof loadStage === 'function') {
+          loadStage('ready');
+          loadStage('waiting');
+        }
+        updateTopNotificationBar();
+        alert(res.message || 'تم تعديل الأسعار بنجاح.');
+      } else {
+        alert((res && res.error) || 'تعذر تعديل الأسعار.');
+      }
+    })
+    .withFailureHandler(function(err) {
+      alert('فشل الاتصال بالخادم: ' + (err && err.message ? err.message : err));
+    })
+    .adminEditDevicePrices({
+      rowId: rowId,
+      techCost: techCost,
+      salePrice: salePrice,
+      reason: reason,
+      actorName: currentUser.name || currentUser.userName || 'المدير'
+    }, currentUser.role);
+}
+
+function openDailyFinancialModal() {
   document.getElementById('dailyFinancialModal').style.display = 'flex';
   const container = document.getElementById('dailyFinancialContainer');
   container.innerHTML = '<p style="text-align:center; padding:20px;">جاري جلب بيانات اليوم...</p>';
@@ -5986,7 +6265,75 @@ function openTechRepairedModal(techName, selectedMonth) {
     .getDailyFinancialSummary();
 }
   </script>
-  <!-- MODAL: DAILY FINANCIAL SUMMARY -->
+  
+<!-- MODAL: DAILY DELIVERED DEVICES FOR STORE -->
+<div class="modal-overlay" id="dailyDeliveredStoreModal">
+  <div class="modal-card" style="max-width:850px;max-height:90vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #E2E8F0;padding-bottom:10px;margin-bottom:14px;">
+      <div>
+        <h3 style="margin:0;">📦 الأجهزة المسلمة اليوم</h3>
+        <small style="color:#64748B;">قائمة الأجهزة التي تم تسليمها فعلياً للزبائن اليوم.</small>
+      </div>
+      <button class="icon-close-btn" onclick="closeModal('dailyDeliveredStoreModal')">✕</button>
+    </div>
+    <div id="dailyDeliveredStoreContainer">جاري تحميل البيانات...</div>
+    <button class="btn" style="background:#CBD5E0;margin-top:15px;" onclick="closeModal('dailyDeliveredStoreModal')">إغلاق</button>
+  </div>
+</div>
+
+<!-- MODAL: ADMIN PRICE EDIT -->
+<div class="modal-overlay" id="adminPriceEditModal">
+  <div class="modal-card" style="max-width:650px;max-height:90vh;overflow:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #E2E8F0;padding-bottom:10px;margin-bottom:14px;">
+      <div>
+        <h3 style="margin:0;">✏️ تعديل سعر الجهاز</h3>
+        <small style="color:#64748B;">هذه الوظيفة للمدير فقط وتوثّق كل تعديل في سجل الجهاز.</small>
+      </div>
+      <button class="icon-close-btn" onclick="closeModal('adminPriceEditModal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>رقم الوصل</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="adminPriceSearchInput" placeholder="مثال: REC-1001" onkeyup="if(event.key==='Enter') searchAdminPriceDevice()">
+        <button type="button" class="btn-sm btn-info" onclick="searchAdminPriceDevice()" style="min-width:90px;">بحث 🔍</button>
+      </div>
+    </div>
+
+    <div id="adminPriceSearchResults"></div>
+
+    <div id="adminPriceEditForm" style="display:none;margin-top:15px;border-top:1px solid #E2E8F0;padding-top:15px;">
+      <input type="hidden" id="adminPriceRowId">
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div><b id="adminPriceReceipt"></b></div>
+        <div id="adminPriceDeviceInfo" style="margin-top:4px;"></div>
+        <div style="font-size:.85rem;color:#64748B;margin-top:4px;">الفني: <b id="adminPriceTechName"></b></div>
+      </div>
+
+      <div class="form-group">
+        <label>سعر التصليح / حقوق الفني (دج) *</label>
+        <input type="number" id="adminPriceTechCost" min="0" step="1" style="font-size:1.15rem;font-weight:900;">
+        <small style="color:#64748B;">إذا كان الفني أخطأ في قيمة سعر التصليح، عدّلها هنا. سيُعاد احتساب مستحقاته بناءً على القيمة الجديدة.</small>
+      </div>
+
+      <div class="form-group">
+        <label>السعر النهائي للزبون (دج) *</label>
+        <input type="number" id="adminPriceSalePrice" min="0" step="1" style="font-size:1.15rem;font-weight:900;">
+      </div>
+
+      <div class="form-group">
+        <label>سبب التعديل (اختياري)</label>
+        <input type="text" id="adminPriceReason" placeholder="مثال: الفني أدخل السعر بالخطأ">
+      </div>
+
+      <button class="btn btn-success" onclick="saveAdminPriceEdit()">💾 حفظ التعديل</button>
+    </div>
+
+    <button class="btn" style="background:#CBD5E0;margin-top:8px;" onclick="closeModal('adminPriceEditModal')">إغلاق</button>
+  </div>
+</div>
+
+<!-- MODAL: DAILY FINANCIAL SUMMARY -->
 <div class="modal-overlay" id="dailyFinancialModal">
   <div class="modal-card" style="max-width: 650px;">
     <h3 style="border-bottom:3px solid var(--primary); padding-bottom:8px; margin-bottom:15px;">📅 حصيلة الأموال والأجهزة المسلمة اليوم</h3>
@@ -6983,6 +7330,41 @@ body.role-tech #techBannerContainer .rb-reward-section,body.rb-tech-user #techBa
 }
 </style>
 
+<style id="rb-inventory-css">
+.rb-inventory-modal{max-width:1120px!important;width:96%!important;max-height:94vh;overflow:auto}.rb-inv-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid #E5E7EB;padding-bottom:12px;margin-bottom:14px}.rb-inv-head h3{margin:3px 0;color:#111827;font-size:1.25rem}.rb-inv-head p{margin:4px 0;color:#64748B;font-size:.82rem}.rb-inv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.rb-inv-stats>div{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center}.rb-inv-stats b{display:block;font-size:1.35rem;color:#111827}.rb-inv-stats span{font-size:.78rem;color:#64748B}.rb-inv-stats .low{border-right:4px solid #DC2626}.rb-inv-stats .low b{color:#DC2626}.rb-inv-toolbar{display:grid;grid-template-columns:minmax(200px,1.5fr) 150px 170px 150px auto auto;gap:8px;margin-bottom:12px}.rb-inv-toolbar input,.rb-inv-toolbar select{min-width:0}.rb-inv-table-wrap{overflow:auto;border:1px solid #E5E7EB;border-radius:10px}.rb-inv-table{width:100%;border-collapse:collapse;min-width:1060px}.rb-inv-table th,.rb-inv-table td{border-bottom:1px solid #E5E7EB;padding:9px 7px;text-align:center;font-size:.78rem}.rb-inv-table th{background:#F8FAFC;color:#334155;white-space:nowrap}.rb-inv-table td{color:#111827}.rb-inv-low{background:#FFF7F7!important}.rb-inv-qty{font-weight:900;font-size:.95rem}.rb-inv-qty.low{color:#DC2626}.rb-inv-loading{text-align:center;padding:30px;color:#64748B}.rb-inv-actions{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}.rb-inv-actions button{width:auto}.rb-inv-form,.rb-inv-stock-form{margin-top:14px;padding:15px;border:1px solid #D9E2EF;border-radius:12px;background:#F8FAFC}.rb-inv-form-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.rb-inv-form h4,.rb-inv-stock-form h4{margin:0;color:#111827}.rb-inv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.rb-inv-grid label,.rb-inv-stock-grid label{font-weight:700;color:#334155}.rb-add-list{display:flex;gap:4px;margin-top:5px}.rb-add-list input{flex:1;padding:7px}.rb-model-hint{display:block;font-size:.7rem;color:#64748B;margin-top:3px}.rb-add-list button{width:34px;border:0;border-radius:6px;background:#2563EB;color:#fff;font-weight:900}.rb-inv-stock-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.rb-compat-add{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}.rb-compat-rows{margin-top:10px;border:1px solid #E5E7EB;border-radius:10px;background:#fff;max-height:260px;overflow:auto}.rb-compat-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #E5E7EB}.rb-compat-row:last-child{border-bottom:0}.rb-compat-tag{font-size:.78rem;color:#111827;font-weight:700}.rb-compat-empty{text-align:center;padding:16px;color:#64748B}@media(max-width:700px){.rb-inv-stats{grid-template-columns:1fr 1fr}.rb-inventory-modal{width:98%!important;padding:12px!important}.rb-inv-toolbar{grid-template-columns:1fr 1fr}.rb-inv-toolbar .btn{width:100%!important}.rb-inv-grid,.rb-inv-stock-grid,.rb-compat-add,.rb-compat-row{grid-template-columns:1fr}.rb-inv-head h3{font-size:1.05rem}}
+</style>
+<script id="rb-inventory-js">
+var rbInventoryData=[];var rbInventoryLists={types:[],categories:[],models:[]};var rbInventoryCompatRows=[];
+function openInventoryModal(){if(!currentUser||(currentUser.role!=='ADMIN'&&currentUser.role!=='STORE'))return alert('غير مصرح لك بإدارة المخزون.');const m=document.getElementById('inventoryModal');if(!m)return;m.style.display='flex';closeInventoryPartForm();closeInventoryStockForm();loadInventory();}
+function loadInventory(){const box=document.getElementById('rbInventoryTable');if(box)box.innerHTML='<div class="rb-inv-loading">جاري تحميل المخزون...</div>';google.script.run.withSuccessHandler(function(res){if(!res||!res.success){if(box)box.innerHTML='<div class="rb-inv-loading">تعذر تحميل المخزون: '+((res&&res.error)||'خطأ')+'</div>';return;}rbInventoryData=res.data||[];rbInventoryLists=res.lists||{types:[],categories:[]};document.getElementById('rbInvPartsCount').textContent=res.stats.partsCount||0;document.getElementById('rbInvTotalQty').textContent=res.stats.totalQty||0;document.getElementById('rbInvLowCount').textContent=res.stats.lowStock||0;const pv=document.getElementById('rbInvPurchaseValue');if(pv)pv.textContent=formatDZD(res.stats.purchaseValue||0);const badge=document.getElementById('v18InventoryLowBadge');if(badge)badge.textContent=res.stats.lowStock||0;fillInventorySelects();renderInventory();}).withFailureHandler(function(err){if(box)box.innerHTML='<div class="rb-inv-loading">تعذر الاتصال: '+((err&&err.message)||err)+'</div>';}).getInventoryData(currentUser.role);}
+function fillInventorySelects(){const t=document.getElementById('rbInvType'),c=document.getElementById('rbInvCategory'),m=document.getElementById('rbInvModelList'),tf=document.getElementById('rbInvTypeFilter'),cf=document.getElementById('rbInvCategoryFilter');if(!t||!c)return;const oldT=t.value,oldC=c.value,oldTF=tf?tf.value:'',oldCF=cf?cf.value:'';t.innerHTML='<option value="">اختر النوع</option>'+rbInventoryLists.types.map(x=>'<option>'+rbInvEscapeHtml(x)+'</option>').join('');c.innerHTML='<option value="">اختر التصنيف</option>'+rbInventoryLists.categories.map(x=>'<option>'+rbInvEscapeHtml(x)+'</option>').join('');if(tf)tf.innerHTML='<option value="">كل الأنواع</option>'+rbInventoryLists.types.map(x=>'<option value="'+rbInvEscapeHtml(x)+'">'+rbInvEscapeHtml(x)+'</option>').join('');if(cf)cf.innerHTML='<option value="">كل التصنيفات</option>'+rbInventoryLists.categories.map(x=>'<option value="'+rbInvEscapeHtml(x)+'">'+rbInvEscapeHtml(x)+'</option>').join('');if(m)m.innerHTML=(rbInventoryLists.models||[]).map(x=>'<option value="'+rbInvEscapeHtml(x)+'"></option>').join('');if(oldT)t.value=oldT;if(oldC)c.value=oldC;if(tf)tf.value=oldTF;if(cf)cf.value=oldCF;}
+function renderInventory(){const box=document.getElementById('rbInventoryTable');if(!box)return;const q=(document.getElementById('rbInvSearch').value||'').trim().toLowerCase(),f=document.getElementById('rbInvFilter').value,tf=(document.getElementById('rbInvTypeFilter').value||''),cf=(document.getElementById('rbInvCategoryFilter').value||''),rows=rbInventoryData.filter(p=>{const hay=[p.partId,p.name,p.type,p.category,p.models,p.sku,p.location,p.supplier].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!tf||p.type===tf)&&(!cf||p.category===cf)&&(f!=='low'||p.quantity<=p.minQty);});if(!rows.length){box.innerHTML='<div class="rb-inv-loading">لا توجد قطع مطابقة للبحث.</div>';return;}box.innerHTML='<table class="rb-inv-table"><thead><tr><th>رقم القطعة</th><th>اسم القطعة</th><th>النوع</th><th>التصنيف</th><th>الموديلات</th><th>الموقع</th><th>المورد</th><th>الكمية</th><th>الحد الأدنى</th><th>شراء</th><th>بيع</th><th>إجراءات</th></tr></thead><tbody>'+rows.map(p=>{const low=p.quantity<=p.minQty;return '<tr class="'+(low?'rb-inv-low':'')+'"><td><b>'+rbInvEscapeHtml(p.partId)+'</b></td><td><b>'+rbInvEscapeHtml(p.name)+'</b><br><small>'+rbInvEscapeHtml(p.sku||'')+'</small></td><td>'+rbInvEscapeHtml(p.type)+'</td><td>'+rbInvEscapeHtml(p.category)+'</td><td>'+rbInvEscapeHtml(p.models||'—')+'</td><td>'+rbInvEscapeHtml(p.location||'—')+'</td><td>'+rbInvEscapeHtml(p.supplier||'—')+'</td><td><span class="rb-inv-qty '+(low?'low':'')+'">'+p.quantity+(low?' ⚠️':'')+'</span></td><td>'+p.minQty+'</td><td>'+formatDZD(p.purchasePrice)+'</td><td>'+formatDZD(p.salePrice)+'</td><td><div class="rb-inv-actions"><button class="btn-sm btn-success" onclick="openInventoryStockForm('+p.rowId+',\'إضافة\')">＋ إضافة</button><button class="btn-sm btn-danger" onclick="openInventoryStockForm('+p.rowId+',\'صرف\')">− صرف</button><button class="btn-sm btn-info" onclick="editInventoryPart('+p.rowId+')">✏️ تعديل</button><button class="btn-sm" style="background:#7C3AED;color:#fff" onclick="openInventoryCompatibility('+p.rowId+')">🔗 توافق</button><button class="btn-sm" style="background:#64748B;color:#fff" onclick="showInventoryMovements(\''+rbInvEscapeHtml(p.partId).replace(/'/g,"&#39;")+'\')">📋 سجل</button></div></td></tr>';}).join('')+'</tbody></table>';}
+function openInventoryPartForm(){closeInventoryCompatibilityForm();document.getElementById('rbInventoryForm').style.display='block';document.getElementById('rbInventoryStockForm').style.display='none';document.getElementById('rbInvFormTitle').textContent='إضافة قطعة جديدة';document.getElementById('rbInvRowId').value='';['rbInvName','rbInvModels','rbInvSku','rbInvLocation','rbInvNotes','rbInvSupplier','rbInvNewModel'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('rbInvMin').value=1;document.getElementById('rbInvQty').value=0;document.getElementById('rbInvPurchase').value=0;document.getElementById('rbInvSale').value=0;fillInventorySelects();}
+function editInventoryPart(rowId){const p=rbInventoryData.find(x=>x.rowId===rowId);if(!p)return;openInventoryPartForm();document.getElementById('rbInvFormTitle').textContent='تعديل القطعة '+p.partId;document.getElementById('rbInvRowId').value=p.rowId;document.getElementById('rbInvName').value=p.name;document.getElementById('rbInvType').value=p.type;document.getElementById('rbInvCategory').value=p.category;document.getElementById('rbInvModels').value=p.models;document.getElementById('rbInvSku').value=p.sku;document.getElementById('rbInvLocation').value=p.location;document.getElementById('rbInvSupplier').value=p.supplier||'';document.getElementById('rbInvMin').value=p.minQty;document.getElementById('rbInvQty').value=p.quantity;document.getElementById('rbInvPurchase').value=p.purchasePrice;document.getElementById('rbInvSale').value=p.salePrice;document.getElementById('rbInvNotes').value=p.notes||'';}
+function closeInventoryPartForm(){const x=document.getElementById('rbInventoryForm');if(x)x.style.display='none';}
+function saveInventoryPartUI(){const data={rowId:document.getElementById('rbInvRowId').value,name:document.getElementById('rbInvName').value,type:document.getElementById('rbInvType').value,category:document.getElementById('rbInvCategory').value,models:document.getElementById('rbInvModels').value,sku:document.getElementById('rbInvSku').value,location:document.getElementById('rbInvLocation').value,minQty:document.getElementById('rbInvMin').value,quantity:document.getElementById('rbInvQty').value,purchasePrice:document.getElementById('rbInvPurchase').value,salePrice:document.getElementById('rbInvSale').value,notes:document.getElementById('rbInvNotes').value,supplier:document.getElementById('rbInvSupplier').value};if(!data.name.trim())return alert('اسم القطعة مطلوب.');if(!data.type||!data.category)return alert('اختر نوع القطعة والتصنيف.');google.script.run.withSuccessHandler(function(res){if(res&&res.success){alert('تم حفظ القطعة برقم '+res.partId);closeInventoryPartForm();loadInventory();}else alert('تعذر الحفظ: '+((res&&res.error)||'خطأ'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).saveInventoryPart(data,currentUser.role);}
+function openInventoryStockForm(rowId,type){closeInventoryCompatibilityForm();const p=rbInventoryData.find(x=>x.rowId===rowId);if(!p)return;closeInventoryPartForm();document.getElementById('rbInventoryStockForm').style.display='block';document.getElementById('rbInvStockRowId').value=rowId;document.getElementById('rbInvStockTitle').textContent=(type==='صرف'?'− صرف من المخزون: ':'＋ إضافة إلى المخزون: ')+p.name;document.getElementById('rbInvMoveType').value=type;document.getElementById('rbInvMoveQty').value=1;document.getElementById('rbInvMoveReceipt').value='';document.getElementById('rbInvMoveNote').value='';}
+function closeInventoryStockForm(){const x=document.getElementById('rbInventoryStockForm');if(x)x.style.display='none';}
+function saveInventoryMovementUI(){const data={rowId:document.getElementById('rbInvStockRowId').value,movementType:document.getElementById('rbInvMoveType').value,quantity:document.getElementById('rbInvMoveQty').value,receipt:document.getElementById('rbInvMoveReceipt').value,note:document.getElementById('rbInvMoveNote').value,actor:currentUser.name||currentUser.role};google.script.run.withSuccessHandler(function(res){if(res&&res.success){alert('تم تسجيل الحركة. الرصيد الجديد: '+res.balance);closeInventoryStockForm();loadInventory();}else alert('تعذر تسجيل الحركة: '+((res&&res.error)||'خطأ'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).adjustInventoryStock(data,currentUser.role);}
+function openInventoryCompatibility(rowId){const p=rbInventoryData.find(x=>x.rowId===rowId);if(!p)return;document.getElementById('rbInventoryForm').style.display='none';document.getElementById('rbInventoryStockForm').style.display='none';const f=document.getElementById('rbInventoryCompatibilityForm');if(!f)return;f.style.display='block';document.getElementById('rbInvCompatPartId').value=p.partId;document.getElementById('rbInvCompatTitle').textContent='🔗 توافق القطعة '+p.partId+' — '+p.name;rbInventoryCompatRows=[];rbFillCompatTypes();const t=document.getElementById('rbInvCompatType'),b=document.getElementById('rbInvCompatBrand'),m=document.getElementById('rbInvCompatModel');if(t)t.value='';if(b)b.innerHTML='<option value="">اختر الماركة</option>';if(m)m.innerHTML='<option value="">اختر الموديل</option>';document.getElementById('rbInvCompatRows').innerHTML='<div class="rb-inv-loading">جاري تحميل التوافق...</div>';google.script.run.withSuccessHandler(function(res){if(!res||!res.success){document.getElementById('rbInvCompatRows').innerHTML='<div class="rb-compat-empty">تعذر تحميل التوافق.</div>';return;}rbInventoryCompatRows=res.data||[];rbRenderCompatRows();}).withFailureHandler(function(){document.getElementById('rbInvCompatRows').innerHTML='<div class="rb-compat-empty">تعذر الاتصال.</div>';}).getInventoryCompatibility(currentUser.role,p.partId);}
+function closeInventoryCompatibilityForm(){const f=document.getElementById('rbInventoryCompatibilityForm');if(f)f.style.display='none';rbInventoryCompatRows=[];}
+function rbFillCompatTypes(){const t=document.getElementById('rbInvCompatType');if(!t)return;const types=Object.keys((typeof fullDeviceMatrix!=='undefined'?fullDeviceMatrix:{}));t.innerHTML='<option value="">اختر نوع الجهاز</option>'+types.map(x=>'<option value="'+rbInvEscapeHtml(x)+'">'+rbInvEscapeHtml(x)+'</option>').join('');}
+function rbInvCompatTypeChanged(){const type=document.getElementById('rbInvCompatType').value,b=document.getElementById('rbInvCompatBrand'),m=document.getElementById('rbInvCompatModel');if(!b||!m)return;b.innerHTML='<option value="">اختر الماركة</option>';m.innerHTML='<option value="">اختر الموديل</option>';const map=(typeof fullDeviceMatrix!=='undefined'?fullDeviceMatrix:{});if(type&&map[type])Object.keys(map[type]).forEach(x=>{b.innerHTML+='<option value="'+rbInvEscapeHtml(x)+'">'+rbInvEscapeHtml(x)+'</option>';});}
+function rbInvCompatBrandChanged(){const type=document.getElementById('rbInvCompatType').value,brand=document.getElementById('rbInvCompatBrand').value,m=document.getElementById('rbInvCompatModel');if(!m)return;m.innerHTML='<option value="">اختر الموديل</option>';const item=((typeof fullDeviceMatrix!=='undefined'?fullDeviceMatrix:{}))[type]&&(((typeof fullDeviceMatrix!=='undefined'?fullDeviceMatrix:{}))[type][brand]);(item&&item.models||[]).forEach(x=>{m.innerHTML+='<option value="'+rbInvEscapeHtml(x)+'">'+rbInvEscapeHtml(x)+'</option>';});}
+function addInventoryCompatibilityRow(){const type=document.getElementById('rbInvCompatType').value,brand=document.getElementById('rbInvCompatBrand').value,model=document.getElementById('rbInvCompatModel').value;if(!type||!brand||!model)return alert('اختر نوع الجهاز والماركة والموديل أولاً.');if(rbInventoryCompatRows.some(x=>x.deviceType===type&&x.brand===brand&&x.model===model))return alert('هذا التوافق مضاف بالفعل.');rbInventoryCompatRows.push({deviceType:type,brand:brand,model:model,notes:''});rbRenderCompatRows();}
+function rbRenderCompatRows(){const box=document.getElementById('rbInvCompatRows');if(!box)return;if(!rbInventoryCompatRows.length){box.innerHTML='<div class="rb-compat-empty">لا توجد توافقات مضافة لهذه القطعة.</div>';return;}box.innerHTML=rbInventoryCompatRows.map((x,i)=>'<div class="rb-compat-row"><span class="rb-compat-tag">'+rbInvEscapeHtml(x.deviceType)+'</span><span class="rb-compat-tag">'+rbInvEscapeHtml(x.brand)+'</span><span class="rb-compat-tag">'+rbInvEscapeHtml(x.model)+'</span><button class="btn-sm btn-danger" onclick="removeInventoryCompatibilityRow('+i+')">حذف</button></div>').join('');}
+function removeInventoryCompatibilityRow(i){rbInventoryCompatRows.splice(i,1);rbRenderCompatRows();}
+function saveInventoryCompatibilityUI(){const partId=document.getElementById('rbInvCompatPartId').value;google.script.run.withSuccessHandler(function(res){if(res&&res.success){alert('تم حفظ التوافقات: '+res.count);closeInventoryCompatibilityForm();loadInventory();}else alert('تعذر الحفظ: '+((res&&res.error)||'خطأ'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).saveInventoryCompatibility(partId,rbInventoryCompatRows,currentUser.role);}
+function addInventoryList(kind){const isType=kind==='type',id=isType?'rbInvNewType':'rbInvNewCategory',v=(document.getElementById(id).value||'').trim();if(!v)return alert('اكتب القيمة الجديدة أولاً.');google.script.run.withSuccessHandler(function(res){if(res&&res.success){if(isType)rbInventoryLists.types.push(v);else rbInventoryLists.categories.push(v);fillInventorySelects();document.getElementById(isType?'rbInvType':'rbInvCategory').value=v;document.getElementById(id).value='';}else alert('تعذر الإضافة: '+((res&&res.error)||'خطأ'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).addInventoryListValue(v,isType?'نوع القطعة':'التصنيف',currentUser.role);}
+function addInventoryModelUI(){const e=document.getElementById('rbInvNewModel'),v=(e&&e.value||'').trim();if(!v)return alert('اكتب اسم الموديل أولاً.');google.script.run.withSuccessHandler(function(res){if(res&&res.success){if(!rbInventoryLists.models)rbInventoryLists.models=[];if(rbInventoryLists.models.indexOf(v)<0)rbInventoryLists.models.push(v);fillInventorySelects();const input=document.getElementById('rbInvModels');if(input){const current=input.value.trim();input.value=current?(current+', '+v):v;}e.value='';}else alert('تعذر إضافة الموديل: '+((res&&res.error)||'خطأ'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).addInventoryModel(v,currentUser.role);}
+function showInventoryMovements(partId){google.script.run.withSuccessHandler(function(res){if(!res||!res.success)return alert('تعذر تحميل السجل.');const lines=(res.data||[]).slice(0,30).map(x=>x.date+' — '+x.type+' '+x.quantity+' | '+x.before+' → '+x.after+(x.receipt?' | '+x.receipt:'')+(x.note?' | '+x.note:'')).join('\n');alert('سجل حركات '+partId+'\n\n'+(lines||'لا توجد حركات.'));}).withFailureHandler(function(e){alert('تعذر الاتصال: '+((e&&e.message)||e));}).getInventoryMovements(currentUser.role,partId);}
+function formatDZD(v){return Number(v||0).toLocaleString('fr-DZ')+' دج';}
+function rbInvEscapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+</script>
 </body>
 </html>
 
+
+<style id="repairbox-v24-70-print-css">
+#rbPrintCenterBtn{font-weight:900;} .rb-print-sheet{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;color:#111827}.rb-print-sheet h2{text-align:center;margin:0 0 16px}.rb-print-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rb-print-grid>div{padding:8px;border:1px solid #E2E8F0;border-radius:8px}.rb-print-table{width:100%;border-collapse:collapse;font-size:.82rem}.rb-print-table th,.rb-print-table td{border:1px solid #CBD5E1;padding:7px;text-align:right}.rb-print-table th{background:#F1F5F9}.rb-print-thanks{text-align:center;color:#64748B}@media(max-width:700px){#rbPrintCenterBtn{font-size:.75rem;padding:7px}.rb-print-grid{grid-template-columns:1fr}}
+</style>
