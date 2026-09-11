@@ -3119,8 +3119,7 @@ window.rbDirectReturn = function(btn){
 (function () {
   if (window.google && google.script && google.script.run) return;
 
-  var BRIDGE_URL = (window.REPAIRBOX_BRIDGE_URL || 'https://script.google.com/macros/s/AKfycbwqc4uld834Ke1WDglo1rNzYk8cRDgy_ecVrZo2C0SH4whUQGhwrnhR2MMGCoZZLQGe/exec?bridge=1');
-  var frame, ready = false, seq = 0, pending = {}, waitQueue = [];
+var BRIDGE_URL = 'https://script.google.com/macros/s/AKfycbwqc4uld834Ke1WDglo1rNzYk8cRDgy_ecVrZo2C0SH4whUQGhwrnhR2MMGCoZZLQGe/exec?bridge=1';  var frame, ready = false, seq = 0, pending = {}, waitQueue = [];
 
   function ensureFrame() {
     if (frame) return;
